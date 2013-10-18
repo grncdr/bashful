@@ -225,7 +225,7 @@ Bash.prototype.createStream = function () {
                 }
                 self._cursorX = 0;
                 line = '';
-                return write(buf.slice(i + 1));
+                return write.call(this, buf.slice(i + 1));
             }
             else if (c === 0x1b) {
                 mode = 'escape';
