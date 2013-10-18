@@ -69,6 +69,9 @@ Bash.prototype.createStream = function () {
     var mode = null;
     
     var input = through(function write (buf) {
+        if (current) {
+            return current.write(buf);
+        }
         if (typeof buf !== 'string') buf = buf.toString('utf8');
         
         for (var i = 0; i < buf.length; i++) {
@@ -357,6 +360,7 @@ Bash.prototype.eval = function (line) {
     if (!/\S+/.test(line)) {
         return builtins.echo.call(self, [ '-n' ]);
     }
+    var input = through();
     var output = resumer();
     
     if (Array.isArray(line)) line = line.join(' ');
@@ -395,6 +399,7 @@ Bash.prototype.eval = function (line) {
             });
         }
         var cmd = shiftCommand();
+        input.pipe(cmd);
         var redirected = false;
         
         while (commands[0] && /^[|<>]$/.test(commands[0].op)) {
@@ -518,7 +523,7 @@ Bash.prototype.eval = function (line) {
         return p;
     }
     
-    return output;
+    return duplexer(input, output);
 };
 
 function copy (obj) {
